@@ -1,0 +1,53 @@
+name: Sync fork with upstream
+
+# Run daily at 21:00 UTC (change cron if you need a different timezone)
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+# Allow push back to this repo and trigger workflows
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          token: ${{ secrets.GH_PAT }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/nightscout/Trio.git || true
+          git remote -v
+
+      - name: Fetch upstream
+        run: git fetch upstream
+
+      - name: Merge upstream into branch
+        run: |
+          git checkout dev
+          # Try fast-forward merge first; if that fails, perform a regular merge
+          if git merge --ff-only upstream/dev; then
+            echo "Fast-forwarded"
+          else
+            echo "Fast-forward not possible, performing non-fast-forward merge"
+            git merge upstream/dev -m "Merge upstream/dev into dev"
+          fi
+
+      - name: Push changes to fork
+        run: |
+          git push origin dev
+
+      - name: Trigger build workflow
+        run: |
+          gh workflow run build_trio.yml --ref dev
