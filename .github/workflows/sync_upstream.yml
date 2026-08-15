@@ -25,6 +25,11 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
+      - name: Configure git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Add upstream remote
         run: |
           git remote add upstream https://github.com/nightscout/Trio.git || true
