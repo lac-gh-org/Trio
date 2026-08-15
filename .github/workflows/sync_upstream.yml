@@ -56,4 +56,4 @@ jobs:
 
       - name: Trigger build workflow
         run: |
-          gh workflow run build_trio.yml --ref dev
+          gh workflow run build_trio.yml --repo lac-gh-org/Trio --ref dev
