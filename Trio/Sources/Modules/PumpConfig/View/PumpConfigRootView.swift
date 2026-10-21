@@ -32,7 +32,11 @@ extension PumpConfig {
                             }
                         } else if let pumpState = state.pumpState {
                             Button {
-                                state.setupPump = true
+                                if state.provider.apsManager.pumpManager != nil {
+                                    state.showPumpManagerSettings = true
+                                } else {
+                                    state.setupPump = true
+                                }
                             } label: {
                                 HStack {
                                     Image(uiImage: pumpState.image ?? UIImage())
@@ -85,6 +89,27 @@ extension PumpConfig {
             .onAppear(perform: configureView)
             .navigationBarTitleDisplayMode(.automatic)
             .navigationTitle("Insulin Pump")
+            .navigationDestination(isPresented: $state.showPumpManagerSettings) {
+                Group {
+                    if let pumpManager = state.provider.apsManager.pumpManager {
+                        PumpSettingsView(
+                            pumpManager: pumpManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    } else if let pumpEntry = state.setupPumpEntry {
+                        PumpSetupView(
+                            pumpEntry: pumpEntry,
+                            pumpInitialSettings: state.initialSettings,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    }
+                }
+                .toolbar(.hidden, for: .tabBar)
+            }
             .sheet(isPresented: $state.setupPump) {
                 if let pumpManager = state.provider.apsManager.pumpManager {
                     PumpSettingsView(

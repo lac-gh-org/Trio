@@ -47,6 +47,7 @@ extension CGMSettings {
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var shouldDisplayCGMSetupSheet: Bool = false
+        @Published var shouldDisplayCGMManagerSettings: Bool = false
         @Published var cgmCurrent = cgmDefaultModel
         @Published var smoothGlucose = false
         @Published var cgmTransmitterDeviceAddress: String? = nil
@@ -126,6 +127,7 @@ extension CGMSettings {
 
                 await MainActor.run {
                     self.shouldDisplayCGMSetupSheet = false
+                    self.shouldDisplayCGMManagerSettings = false
                     broadcaster.notify(GlucoseObserver.self, on: .main) {
                         $0.glucoseDidUpdate([])
                     }
@@ -148,6 +150,7 @@ extension CGMSettings.StateModel: CompletionDelegate {
             }
         }
         shouldDisplayCGMSetupSheet = false
+        shouldDisplayCGMManagerSettings = false
     }
 }
 

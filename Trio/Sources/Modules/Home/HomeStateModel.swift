@@ -66,6 +66,8 @@ extension Home {
         var percentage: Int = 100
         var shouldDisplayPumpSetupSheet = false
         var shouldDisplayCGMSetupSheet = false
+        var shouldDisplayPumpManagerSettings = false
+        var shouldDisplayCGMManagerSettings = false
         var errorMessage: String?
         var errorDate: Date?
         var bolusProgress: Decimal?
@@ -683,6 +685,7 @@ extension Home {
                         self.battery = nil
                         self.pumpName = ""
                         self.pumpExpiresAtDate = nil
+                        self.shouldDisplayPumpManagerSettings = false
                         self.shouldDisplayPumpSetupSheet = false
                     } else {
                         self.setupReservoir()
@@ -761,6 +764,26 @@ extension Home {
             shouldDisplayPumpSetupSheet = true
         }
 
+        func showPumpManagerSettings() {
+            if provider.apsManager.pumpManager != nil {
+                shouldDisplayPumpManagerSettings = true
+            } else {
+                shouldDisplayPumpSetupSheet = true
+            }
+        }
+
+        func showCGMManagerSettings() {
+            if cgmCurrent.type == .plugin,
+               fetchGlucoseManager.cgmManager != nil,
+               cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
+               cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
+            {
+                shouldDisplayCGMManagerSettings = true
+            } else {
+                shouldDisplayCGMSetupSheet = true
+            }
+        }
+
         func addCGM(cgm: CGMModel) {
             cgmCurrent = cgm
             switch cgmCurrent.type {
@@ -786,6 +809,7 @@ extension Home {
                     // UI updates go back to Main
                     await MainActor.run {
                         self.shouldDisplayCGMSetupSheet = false
+                        self.shouldDisplayCGMManagerSettings = false
                         self.broadcaster.notify(GlucoseObserver.self, on: .main) {
                             $0.glucoseDidUpdate([])
                         }

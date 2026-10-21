@@ -281,6 +281,55 @@ extension Home {
             .navigationTitle("Home")
             .navigationBarHidden(true)
             .blur(radius: state.isLoopStatusPresented ? 3 : 0)
+            .navigationDestination(isPresented: $state.shouldDisplayPumpManagerSettings) {
+                Group {
+                    if let pumpManager = state.provider.apsManager.pumpManager {
+                        PumpConfig.PumpSettingsView(
+                            pumpManager: pumpManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    } else if let pumpEntry = state.setupPumpEntry {
+                        PumpConfig.PumpSetupView(
+                            pumpEntry: pumpEntry,
+                            pumpInitialSettings: state.pumpInitialSettings,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    }
+                }
+                .toolbar(.hidden, for: .tabBar)
+                .toolbar(.visible, for: .navigationBar)
+            }
+            .navigationDestination(isPresented: $state.shouldDisplayCGMManagerSettings) {
+                Group {
+                    if let fetchGlucoseManager = state.fetchGlucoseManager,
+                       let cgmManager = fetchGlucoseManager.cgmManager,
+                       state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
+                       state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
+                    {
+                        CGMSettings.CGMSettingsView(
+                            cgmManager: cgmManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state
+                        )
+                    } else {
+                        CGMSettings.CGMSetupView(
+                            CGMType: state.cgmCurrent,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state,
+                            setupDelegate: state,
+                            pluginCGMManager: state.pluginCGMManager
+                        )
+                    }
+                }
+                .toolbar(.hidden, for: .tabBar)
+                .toolbar(.visible, for: .navigationBar)
+            }
             .sheet(isPresented: $state.isLoopStatusPresented) {
                 LoopStatusView(state: state)
             }

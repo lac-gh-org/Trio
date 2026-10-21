@@ -54,6 +54,8 @@ extension Home.StateModel: CompletionDelegate {
         }
         shouldDisplayCGMSetupSheet = false
         shouldDisplayPumpSetupSheet = false
+        shouldDisplayCGMManagerSettings = false
+        shouldDisplayPumpManagerSettings = false
     }
 }
 
