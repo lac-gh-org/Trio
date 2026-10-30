@@ -848,7 +848,7 @@ extension Home {
                    let image = statusBadge.image, !didDeactivate
                 {
                     pumpStatusBadgeImage = image
-                    pumpStatusBadgeColor = statusBadge.state == .critical ? .critical : .warning
+                    pumpStatusBadgeColor = statusBadge.state == .critical ? Color.critical : Color.warning
 
                 } else {
                     pumpStatusBadgeImage = nil
