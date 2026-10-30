@@ -42,3 +42,25 @@ extension CGMSettings {
         }
     }
 }
+
+struct CGMManagerSettingsDestination: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @ObservedObject var state: CGMSettings.StateModel
+    let cgmManager: CGMManagerUI
+
+    var body: some View {
+        CGMSettings.CGMSettingsView(
+            cgmManager: cgmManager,
+            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+            unit: state.settingsManager.settings.units,
+            completionDelegate: state
+        )
+        .onAppear {
+            state.dismissManagerSettings = { dismiss() }
+        }
+        .onDisappear {
+            state.dismissManagerSettings = nil
+        }
+    }
+}

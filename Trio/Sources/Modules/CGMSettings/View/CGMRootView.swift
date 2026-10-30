@@ -2,6 +2,10 @@ import LoopKitUI
 import SwiftUI
 import Swinject
 
+private enum CGMSettingsRoute: Hashable {
+    case managerSettings
+}
+
 extension CGMSettings {
     struct RootView: BaseView {
         let resolver: Resolver
@@ -34,16 +38,29 @@ extension CGMSettings {
                         } else {
                             let cgmState = state.cgmCurrent
                             if cgmState.type != .none {
-                                Button {
-                                    state.shouldDisplayCGMSetupSheet = true
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "sensor.tag.radiowaves.forward.fill")
-                                        Text(cgmState.displayName)
+                                let cgmLabel = HStack {
+                                    Image(systemName: "sensor.tag.radiowaves.forward.fill")
+                                    Text(cgmState.displayName)
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
+                                .font(.title2)
+
+                                if cgmState.type == .plugin,
+                                   state.fetchGlucoseManager.cgmManager != nil,
+                                   cgmState.type == state.fetchGlucoseManager.cgmGlucoseSourceType,
+                                   cgmState.id == state.fetchGlucoseManager.cgmGlucosePluginId
+                                {
+                                    NavigationLink(value: CGMSettingsRoute.managerSettings) {
+                                        cgmLabel
                                     }
-                                    .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
-                                    .font(.title2)
-                                }.padding()
+                                    .padding()
+                                } else {
+                                    Button {
+                                        state.shouldDisplayCGMSetupSheet = true
+                                    } label: {
+                                        cgmLabel
+                                    }.padding()
+                                }
                             } else {
                                 VStack {
                                     Button {
@@ -183,6 +200,17 @@ extension CGMSettings {
                                 state.cgmCurrent = cgmDefaultModel
                             }
                         }
+                    }
+                }
+            }
+            .navigationDestination(for: CGMSettingsRoute.self) { route in
+                switch route {
+                case .managerSettings:
+                    if let cgmManager = state.fetchGlucoseManager.cgmManager {
+                        CGMManagerSettingsDestination(state: state, cgmManager: cgmManager)
+                            .toolbar(.hidden, for: .tabBar)
+                    } else {
+                        EmptyView()
                     }
                 }
             }

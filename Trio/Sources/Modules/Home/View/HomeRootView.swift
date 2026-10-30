@@ -384,7 +384,12 @@ extension Home {
                 TabView(selection: modernTabSelection) {
                     let carbsRequiredBadge: String? = carbsRequiredBadgeValue
 
-                    NavigationStack { mainView() }
+                    NavigationStack(path: $state.managerSettingsPath) {
+                        mainView()
+                            .navigationDestination(for: HomeManagerSettingsRoute.self) {
+                                managerSettingsDestination($0)
+                            }
+                    }
                         .tabItem { Label("", systemImage: "chart.xyaxis.line").accessibilityLabel(Text("Main")) }
                         .badge(carbsRequiredBadge).tag(0)
 
@@ -420,11 +425,13 @@ extension Home {
 
                 // fixed distance from the physical screen bottom; immune to
                 // safe-area changes (keyboard, accessories)
-                GeometryReader { geo in
-                    treatmentButton
-                        .position(x: geo.size.width / 2, y: geo.size.height - 52)
+                if state.managerSettingsPath.isEmpty {
+                    GeometryReader { geo in
+                        treatmentButton
+                            .position(x: geo.size.width / 2, y: geo.size.height - 52)
+                    }
+                    .ignoresSafeArea(.all, edges: .bottom)
                 }
-                .ignoresSafeArea(.all, edges: .bottom)
             }
             .ignoresSafeArea(.container, edges: .bottom)
             .ignoresSafeArea(.keyboard, edges: .bottom)
@@ -526,7 +533,12 @@ extension Home {
                         return nil
                     }()
 
-                    NavigationStack { mainView() }
+                    NavigationStack(path: $state.managerSettingsPath) {
+                        mainView()
+                            .navigationDestination(for: HomeManagerSettingsRoute.self) {
+                                managerSettingsDestination($0)
+                            }
+                    }
                         .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
                         .badge(carbsRequiredBadge).tag(0)
 
@@ -552,7 +564,9 @@ extension Home {
                 }
                 .tint(Color.tabBar)
 
-                treatmentButton
+                if state.managerSettingsPath.isEmpty {
+                    treatmentButton
+                }
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
                 .onChange(of: selectedTab) {
                     // reset only when leaving Settings; programmatic pushes survive the switch
@@ -560,6 +574,41 @@ extension Home {
                         settingsPath = NavigationPath()
                     }
                 }
+        }
+
+        @ViewBuilder private func managerSettingsDestination(_ route: HomeManagerSettingsRoute) -> some View {
+            Group {
+                switch route {
+                case .pump:
+                    if let pumpManager = state.provider.apsManager.pumpManager {
+                        PumpConfig.PumpSettingsView(
+                            pumpManager: pumpManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            completionDelegate: state,
+                            setupDelegate: state
+                        )
+                    } else {
+                        EmptyView()
+                    }
+                case .cgm:
+                    if let fetchGlucoseManager = state.fetchGlucoseManager,
+                       let cgmManager = fetchGlucoseManager.cgmManager,
+                       state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
+                       state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
+                    {
+                        CGMSettings.CGMSettingsView(
+                            cgmManager: cgmManager,
+                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+                            unit: state.settingsManager.settings.units,
+                            completionDelegate: state
+                        )
+                    } else {
+                        EmptyView()
+                    }
+                }
+            }
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar(.visible, for: .navigationBar)
         }
 
         var body: some View {

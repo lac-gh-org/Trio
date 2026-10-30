@@ -11,11 +11,17 @@ extension PumpConfig {
         @Published var pumpState: PumpDisplayState?
         private(set) var initialSettings: PumpInitialSettings = .default
         @Injected() var bluetoothManager: BluetoothStateManager!
+        var dismissManagerSettings: (() -> Void)?
 
         override func subscribe() {
             provider.pumpDisplayState
                 .receive(on: DispatchQueue.main)
-                .assign(to: \.pumpState, on: self)
+                .sink { [weak self] pumpState in
+                    self?.pumpState = pumpState
+                    if pumpState == nil {
+                        self?.dismissManagerSettings?()
+                    }
+                }
                 .store(in: &lifetime)
             Task {
                 let basalSchedule = BasalRateSchedule(
@@ -46,6 +52,7 @@ extension PumpConfig {
 extension PumpConfig.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         setupPump = false
+        dismissManagerSettings?()
     }
 }
 

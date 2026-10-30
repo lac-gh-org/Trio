@@ -735,7 +735,7 @@ extension Home.RootView {
                 tint: .orange
             ) {
                 if state.pumpDisplayState != nil {
-                    state.shouldDisplayPumpSetupSheet.toggle()
+                    state.showPumpManagerSettings()
                 }
             }
         case .cgmStale:

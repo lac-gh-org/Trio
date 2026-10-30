@@ -53,6 +53,7 @@ extension CGMSettings {
         @Published var listOfCGM: [CGMModel] = []
         @Published var url: URL?
 
+        var dismissManagerSettings: (() -> Void)?
         var shouldRunDeleteOnSettingsChange = true
 
         override func subscribe() {
@@ -126,6 +127,7 @@ extension CGMSettings {
 
                 await MainActor.run {
                     self.shouldDisplayCGMSetupSheet = false
+                    self.dismissManagerSettings?()
                     broadcaster.notify(GlucoseObserver.self, on: .main) {
                         $0.glucoseDidUpdate([])
                     }
@@ -148,6 +150,7 @@ extension CGMSettings.StateModel: CompletionDelegate {
             }
         }
         shouldDisplayCGMSetupSheet = false
+        dismissManagerSettings?()
     }
 }
 

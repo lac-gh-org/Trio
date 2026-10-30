@@ -21,3 +21,25 @@ extension PumpConfig {
         func updateUIViewController(_: UIViewController, context _: UIViewControllerRepresentableContext<PumpSettingsView>) {}
     }
 }
+
+struct PumpManagerSettingsDestination: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @ObservedObject var state: PumpConfig.StateModel
+    let pumpManager: PumpManagerUI
+
+    var body: some View {
+        PumpConfig.PumpSettingsView(
+            pumpManager: pumpManager,
+            bluetoothManager: state.provider.apsManager.bluetoothManager!,
+            completionDelegate: state,
+            setupDelegate: state
+        )
+        .onAppear {
+            state.dismissManagerSettings = { dismiss() }
+        }
+        .onDisappear {
+            state.dismissManagerSettings = nil
+        }
+    }
+}

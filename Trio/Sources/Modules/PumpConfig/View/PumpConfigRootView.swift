@@ -1,6 +1,10 @@
 import SwiftUI
 import Swinject
 
+private enum PumpConfigRoute: Hashable {
+    case managerSettings
+}
+
 extension PumpConfig {
     struct RootView: BaseView {
         let resolver: Resolver
@@ -31,19 +35,28 @@ extension PumpConfig {
                                 Spacer()
                             }
                         } else if let pumpState = state.pumpState {
-                            Button {
-                                state.setupPump = true
-                            } label: {
-                                HStack {
-                                    Image(uiImage: pumpState.image ?? UIImage())
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(maxWidth: 100)
-                                    Text(pumpState.name)
+                            let pumpLabel = HStack {
+                                Image(uiImage: pumpState.image ?? UIImage())
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: 100)
+                                Text(pumpState.name)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
+                            .font(.title2)
+
+                            if state.provider.apsManager.pumpManager != nil {
+                                NavigationLink(value: PumpConfigRoute.managerSettings) {
+                                    pumpLabel
                                 }
-                                .frame(maxWidth: .infinity, minHeight: 50, alignment: .center)
-                                .font(.title2)
-                            }.padding()
+                                .padding()
+                            } else {
+                                Button {
+                                    state.setupPump = true
+                                } label: {
+                                    pumpLabel
+                                }.padding()
+                            }
                         } else {
                             VStack {
                                 Button {
@@ -101,6 +114,17 @@ extension PumpConfig {
                         completionDelegate: state,
                         setupDelegate: state
                     )
+                }
+            }
+            .navigationDestination(for: PumpConfigRoute.self) { route in
+                switch route {
+                case .managerSettings:
+                    if let pumpManager = state.provider.apsManager.pumpManager {
+                        PumpManagerSettingsDestination(state: state, pumpManager: pumpManager)
+                            .toolbar(.hidden, for: .tabBar)
+                    } else {
+                        EmptyView()
+                    }
                 }
             }
             .sheet(isPresented: $shouldDisplayHint) {
