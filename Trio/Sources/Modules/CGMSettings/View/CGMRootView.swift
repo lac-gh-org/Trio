@@ -35,15 +35,7 @@ extension CGMSettings {
                             let cgmState = state.cgmCurrent
                             if cgmState.type != .none {
                                 Button {
-                                    if cgmState.type == .plugin,
-                                       state.fetchGlucoseManager.cgmManager != nil,
-                                       cgmState.type == state.fetchGlucoseManager.cgmGlucoseSourceType,
-                                       cgmState.id == state.fetchGlucoseManager.cgmGlucosePluginId
-                                    {
-                                        state.shouldDisplayCGMManagerSettings = true
-                                    } else {
-                                        state.shouldDisplayCGMSetupSheet = true
-                                    }
+                                    state.shouldDisplayCGMSetupSheet = true
                                 } label: {
                                     HStack {
                                         Image(systemName: "sensor.tag.radiowaves.forward.fill")
@@ -152,32 +144,6 @@ extension CGMSettings {
             .onAppear(perform: configureView)
             .navigationBarTitleDisplayMode(.automatic)
             .navigationTitle("CGM")
-            .navigationDestination(isPresented: $state.shouldDisplayCGMManagerSettings) {
-                Group {
-                    if let fetchGlucoseManager = state.fetchGlucoseManager,
-                       let cgmManager = fetchGlucoseManager.cgmManager,
-                       state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
-                       state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
-                    {
-                        CGMSettingsView(
-                            cgmManager: cgmManager,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            unit: state.settingsManager.settings.units,
-                            completionDelegate: state
-                        )
-                    } else {
-                        CGMSetupView(
-                            CGMType: state.cgmCurrent,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            unit: state.settingsManager.settings.units,
-                            completionDelegate: state,
-                            setupDelegate: state,
-                            pluginCGMManager: state.pluginCGMManager
-                        )
-                    }
-                }
-                .toolbar(.hidden, for: .tabBar)
-            }
             .sheet(isPresented: $state.shouldDisplayCGMSetupSheet) {
                 switch state.cgmCurrent.type {
                 case .nightscout,

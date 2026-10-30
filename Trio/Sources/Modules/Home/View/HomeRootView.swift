@@ -384,16 +384,9 @@ extension Home {
                 TabView(selection: modernTabSelection) {
                     let carbsRequiredBadge: String? = carbsRequiredBadgeValue
 
-                    NavigationStack(path: $state.managerSettingsPath) {
-                        Group {
-                            mainView()
-                        }
-                        .navigationDestination(for: HomeManagerSettingsRoute.self) {
-                            managerSettingsDestination($0)
-                        }
-                    }
-                    .tabItem { Label("", systemImage: "chart.xyaxis.line").accessibilityLabel(Text("Main")) }
-                    .badge(carbsRequiredBadge).tag(0)
+                    NavigationStack { mainView() }
+                        .tabItem { Label("", systemImage: "chart.xyaxis.line").accessibilityLabel(Text("Main")) }
+                        .badge(carbsRequiredBadge).tag(0)
 
                     NavigationStack { History.RootView(resolver: resolver) }
                         .tabItem { Label("", systemImage: historySFSymbol).accessibilityLabel(Text("History")) }.tag(1)
@@ -533,16 +526,9 @@ extension Home {
                         return nil
                     }()
 
-                    NavigationStack(path: $state.managerSettingsPath) {
-                        Group {
-                            mainView()
-                        }
-                        .navigationDestination(for: HomeManagerSettingsRoute.self) {
-                            managerSettingsDestination($0)
-                        }
-                    }
-                    .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
-                    .badge(carbsRequiredBadge).tag(0)
+                    NavigationStack { mainView() }
+                        .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
+                        .badge(carbsRequiredBadge).tag(0)
 
                     NavigationStack { History.RootView(resolver: resolver) }
                         .tabItem { Label("History", systemImage: historySFSymbol) }.tag(1)
@@ -574,41 +560,6 @@ extension Home {
                         settingsPath = NavigationPath()
                     }
                 }
-        }
-
-        @ViewBuilder private func managerSettingsDestination(_ route: HomeManagerSettingsRoute) -> some View {
-            Group {
-                switch route {
-                case .pump:
-                    if let pumpManager = state.provider.apsManager.pumpManager {
-                        PumpConfig.PumpSettingsView(
-                            pumpManager: pumpManager,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            completionDelegate: state,
-                            setupDelegate: state
-                        )
-                    } else {
-                        EmptyView()
-                    }
-                case .cgm:
-                    if let fetchGlucoseManager = state.fetchGlucoseManager,
-                       let cgmManager = fetchGlucoseManager.cgmManager,
-                       state.cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
-                       state.cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
-                    {
-                        CGMSettings.CGMSettingsView(
-                            cgmManager: cgmManager,
-                            bluetoothManager: state.provider.apsManager.bluetoothManager!,
-                            unit: state.settingsManager.settings.units,
-                            completionDelegate: state
-                        )
-                    } else {
-                        EmptyView()
-                    }
-                }
-            }
-            .toolbar(.hidden, for: .tabBar)
-            .toolbar(.visible, for: .navigationBar)
         }
 
         var body: some View {

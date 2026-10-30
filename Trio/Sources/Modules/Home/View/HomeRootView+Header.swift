@@ -88,7 +88,7 @@ extension Home.RootView {
             if !state.cgmAvailable {
                 showCGMSelection.toggle()
             } else {
-                state.showCGMManagerSettings()
+                state.shouldDisplayCGMSetupSheet.toggle()
             }
         }
         .onLongPressGesture {
@@ -100,7 +100,7 @@ extension Home.RootView {
             if !state.cgmAvailable {
                 showCGMSelection.toggle()
             } else {
-                state.showCGMManagerSettings()
+                state.shouldDisplayCGMSetupSheet.toggle()
             }
         }
         .accessibilityAction(named: Text("Snooze alerts")) {
@@ -124,7 +124,7 @@ extension Home.RootView {
                 showPumpSelection.toggle()
             } else {
                 // sends user to pump settings
-                state.showPumpManagerSettings()
+                state.shouldDisplayPumpSetupSheet.toggle()
             }
         }
         // group reservoir/battery/pod into one button so VO reads it as a single control
@@ -139,7 +139,7 @@ extension Home.RootView {
             if state.pumpDisplayState == nil {
                 showPumpSelection.toggle()
             } else {
-                state.showPumpManagerSettings()
+                state.shouldDisplayPumpSetupSheet.toggle()
             }
         }
     }

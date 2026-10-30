@@ -7,7 +7,6 @@ import SwiftUI
 extension PumpConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Published var setupPump = false
-        @Published var showPumpManagerSettings = false
         private(set) var setupPumpEntry: PumpCatalogEntry?
         @Published var pumpState: PumpDisplayState?
         private(set) var initialSettings: PumpInitialSettings = .default
@@ -16,12 +15,7 @@ extension PumpConfig {
         override func subscribe() {
             provider.pumpDisplayState
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] pumpState in
-                    self?.pumpState = pumpState
-                    if pumpState == nil {
-                        self?.showPumpManagerSettings = false
-                    }
-                }
+                .assign(to: \.pumpState, on: self)
                 .store(in: &lifetime)
             Task {
                 let basalSchedule = BasalRateSchedule(
@@ -52,7 +46,6 @@ extension PumpConfig {
 extension PumpConfig.StateModel: CompletionDelegate {
     func completionNotifyingDidComplete(_: CompletionNotifying) {
         setupPump = false
-        showPumpManagerSettings = false
     }
 }
 
