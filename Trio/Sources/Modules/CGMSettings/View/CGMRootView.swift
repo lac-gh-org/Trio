@@ -2,10 +2,6 @@ import LoopKitUI
 import SwiftUI
 import Swinject
 
-private enum CGMSettingsRoute: Hashable {
-    case managerSettings
-}
-
 extension CGMSettings {
     struct RootView: BaseView {
         let resolver: Resolver
@@ -19,6 +15,7 @@ extension CGMSettings {
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
         @State var showCGMSelection: Bool = false
+        @State private var showManagerSettings = false
         @State private var pendingCGM: CGMCatalogEntry?
 
         @Environment(\.colorScheme) var colorScheme
@@ -50,7 +47,9 @@ extension CGMSettings {
                                    cgmState.type == state.fetchGlucoseManager.cgmGlucoseSourceType,
                                    cgmState.id == state.fetchGlucoseManager.cgmGlucosePluginId
                                 {
-                                    NavigationLink(value: CGMSettingsRoute.managerSettings) {
+                                    Button {
+                                        showManagerSettings = true
+                                    } label: {
                                         cgmLabel
                                     }
                                     .padding()
@@ -203,15 +202,11 @@ extension CGMSettings {
                     }
                 }
             }
-            .navigationDestination(for: CGMSettingsRoute.self) { route in
-                switch route {
-                case .managerSettings:
-                    if let cgmManager = state.fetchGlucoseManager.cgmManager {
-                        CGMManagerSettingsDestination(state: state, cgmManager: cgmManager)
-                            .toolbar(.hidden, for: .tabBar)
-                    } else {
-                        EmptyView()
-                    }
+            .fullScreenCover(isPresented: $showManagerSettings) {
+                if let cgmManager = state.fetchGlucoseManager.cgmManager {
+                    CGMManagerSettingsDestination(state: state, cgmManager: cgmManager)
+                } else {
+                    EmptyView()
                 }
             }
             .sheet(isPresented: $shouldDisplayHint) {

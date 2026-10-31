@@ -1,10 +1,6 @@
 import SwiftUI
 import Swinject
 
-private enum PumpConfigRoute: Hashable {
-    case managerSettings
-}
-
 extension PumpConfig {
     struct RootView: BaseView {
         let resolver: Resolver
@@ -18,6 +14,7 @@ extension PumpConfig {
         @State private var decimalPlaceholder: Decimal = 0.0
         @State private var booleanPlaceholder: Bool = false
         @State var showPumpSelection: Bool = false
+        @State private var showManagerSettings = false
         @State private var pendingPump: PumpCatalogEntry?
 
         @Environment(\.colorScheme) var colorScheme
@@ -46,7 +43,9 @@ extension PumpConfig {
                             .font(.title2)
 
                             if state.provider.apsManager.pumpManager != nil {
-                                NavigationLink(value: PumpConfigRoute.managerSettings) {
+                                Button {
+                                    showManagerSettings = true
+                                } label: {
                                     pumpLabel
                                 }
                                 .padding()
@@ -116,15 +115,11 @@ extension PumpConfig {
                     )
                 }
             }
-            .navigationDestination(for: PumpConfigRoute.self) { route in
-                switch route {
-                case .managerSettings:
-                    if let pumpManager = state.provider.apsManager.pumpManager {
-                        PumpManagerSettingsDestination(state: state, pumpManager: pumpManager)
-                            .toolbar(.hidden, for: .tabBar)
-                    } else {
-                        EmptyView()
-                    }
+            .fullScreenCover(isPresented: $showManagerSettings) {
+                if let pumpManager = state.provider.apsManager.pumpManager {
+                    PumpManagerSettingsDestination(state: state, pumpManager: pumpManager)
+                } else {
+                    EmptyView()
                 }
             }
             .sheet(isPresented: $shouldDisplayHint) {

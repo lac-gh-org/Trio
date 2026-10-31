@@ -384,12 +384,7 @@ extension Home {
                 TabView(selection: modernTabSelection) {
                     let carbsRequiredBadge: String? = carbsRequiredBadgeValue
 
-                    NavigationStack(path: $state.managerSettingsPath) {
-                        mainView()
-                            .navigationDestination(for: HomeManagerSettingsRoute.self) {
-                                managerSettingsDestination($0)
-                            }
-                    }
+                    NavigationStack { mainView() }
                         .tabItem { Label("", systemImage: "chart.xyaxis.line").accessibilityLabel(Text("Main")) }
                         .badge(carbsRequiredBadge).tag(0)
 
@@ -425,7 +420,7 @@ extension Home {
 
                 // fixed distance from the physical screen bottom; immune to
                 // safe-area changes (keyboard, accessories)
-                if state.managerSettingsPath.isEmpty {
+                if state.managerSettingsRoute == nil {
                     GeometryReader { geo in
                         treatmentButton
                             .position(x: geo.size.width / 2, y: geo.size.height - 52)
@@ -533,12 +528,7 @@ extension Home {
                         return nil
                     }()
 
-                    NavigationStack(path: $state.managerSettingsPath) {
-                        mainView()
-                            .navigationDestination(for: HomeManagerSettingsRoute.self) {
-                                managerSettingsDestination($0)
-                            }
-                    }
+                    NavigationStack { mainView() }
                         .tabItem { Label("Main", systemImage: "chart.xyaxis.line") }
                         .badge(carbsRequiredBadge).tag(0)
 
@@ -564,7 +554,7 @@ extension Home {
                 }
                 .tint(Color.tabBar)
 
-                if state.managerSettingsPath.isEmpty {
+                if state.managerSettingsRoute == nil {
                     treatmentButton
                 }
             }.ignoresSafeArea(.keyboard, edges: .bottom).blur(radius: state.waitForSuggestion ? 8 : 0)
@@ -607,8 +597,6 @@ extension Home {
                     }
                 }
             }
-            .toolbar(.hidden, for: .tabBar)
-            .toolbar(.visible, for: .navigationBar)
         }
 
         var body: some View {
@@ -618,6 +606,9 @@ extension Home {
                 if state.waitForSuggestion {
                     CustomProgressView(text: String(localized: "Updating IOB...", comment: "Progress text when updating IOB"))
                 }
+            }
+            .fullScreenCover(item: $state.managerSettingsRoute) {
+                managerSettingsDestination($0)
             }
             .sheet(isPresented: $showQuickPickTreatmentsPicker) {
                 QuickPickTreatmentsView(

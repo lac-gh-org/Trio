@@ -54,7 +54,7 @@ extension Home.StateModel: CompletionDelegate {
         }
         shouldDisplayCGMSetupSheet = false
         shouldDisplayPumpSetupSheet = false
-        managerSettingsPath.removeAll()
+        managerSettingsRoute = nil
     }
 }
 

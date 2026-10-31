@@ -14,9 +14,11 @@ import Observation
 import SwiftDate
 import SwiftUI
 
-enum HomeManagerSettingsRoute: Hashable {
+enum HomeManagerSettingsRoute: Hashable, Identifiable {
     case pump
     case cgm
+
+    var id: Self { self }
 }
 
 extension Home {
@@ -71,7 +73,7 @@ extension Home {
         var percentage: Int = 100
         var shouldDisplayPumpSetupSheet = false
         var shouldDisplayCGMSetupSheet = false
-        var managerSettingsPath: [HomeManagerSettingsRoute] = []
+        var managerSettingsRoute: HomeManagerSettingsRoute?
         var errorMessage: String?
         var errorDate: Date?
         var bolusProgress: Decimal?
@@ -689,7 +691,9 @@ extension Home {
                         self.battery = nil
                         self.pumpName = ""
                         self.pumpExpiresAtDate = nil
-                        self.managerSettingsPath.removeAll { $0 == .pump }
+                        if self.managerSettingsRoute == .pump {
+                            self.managerSettingsRoute = nil
+                        }
                         self.shouldDisplayPumpSetupSheet = false
                     } else {
                         self.setupReservoir()
@@ -770,9 +774,7 @@ extension Home {
 
         func showPumpManagerSettings() {
             if provider.apsManager.pumpManager != nil {
-                if !managerSettingsPath.contains(.pump) {
-                    managerSettingsPath.append(.pump)
-                }
+                managerSettingsRoute = .pump
             } else {
                 shouldDisplayPumpSetupSheet = true
             }
@@ -784,9 +786,7 @@ extension Home {
                cgmCurrent.type == fetchGlucoseManager.cgmGlucoseSourceType,
                cgmCurrent.id == fetchGlucoseManager.cgmGlucosePluginId
             {
-                if !managerSettingsPath.contains(.cgm) {
-                    managerSettingsPath.append(.cgm)
-                }
+                managerSettingsRoute = .cgm
             } else {
                 shouldDisplayCGMSetupSheet = true
             }
@@ -817,7 +817,9 @@ extension Home {
                     // UI updates go back to Main
                     await MainActor.run {
                         self.shouldDisplayCGMSetupSheet = false
-                        self.managerSettingsPath.removeAll { $0 == .cgm }
+                        if self.managerSettingsRoute == .cgm {
+                            self.managerSettingsRoute = nil
+                        }
                         self.broadcaster.notify(GlucoseObserver.self, on: .main) {
                             $0.glucoseDidUpdate([])
                         }
